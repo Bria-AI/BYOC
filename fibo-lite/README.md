@@ -1,6 +1,6 @@
 # Fibo-Lite: Open Source Image & Prompt Generation
 
-Welcome to **Fibo-Lite** – an open source, client-facing toolkit for advanced image generation and structured prompt creation. This folder documents the **Python package** path: install **`fibo-lite`** from **AWS CodeArtifact** (via the Bria Engine), pull model weights from **Hugging Face**, and run the **`FiboLite`** pipeline in your own process (see **`code_example.ipynb`**).
+Welcome to **Fibo-Lite** – an open source, client-facing toolkit for advanced image generation and structured prompt creation. This folder documents the **Python package** path: install **`fibo-lite`** from **AWS CodeArtifact**, pull model weights from **Hugging Face**, and run the **`FiboLite`** pipeline in your own process (see **`code_example.ipynb`**).
 
 ## Overview
 
