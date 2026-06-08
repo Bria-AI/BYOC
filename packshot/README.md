@@ -1,6 +1,6 @@
 # Packshot: BYOC Product Packshot Pipeline
 
-This folder documents the **Python package** path for running Packshot in your own environment: install **`packshot`** from the **`bria-everywhere-testing`** AWS CodeArtifact repository, then call the local pipeline directly from Python.
+This folder documents the **Python package** path for running Packshot in your own environment: install **`packshot`** from the **`bria-packshot`** AWS CodeArtifact repository, then call the local pipeline directly from Python.
 
 Packshot creates a centered `2000x2000` product image from an input image. It removes the background, resizes the product with consistent padding, and places it on a white, transparent, or custom hex-color background.
 ## Overview
@@ -8,7 +8,7 @@ Packshot creates a centered `2000x2000` product image from an input image. It re
 The included **`code_example.ipynb`** notebook demonstrates:
 
 - Obtaining a short-lived CodeArtifact credential from the Bria Engine.
-- Installing **`packshot`** from **`bria-everywhere-testing`**.
+- Installing **`packshot`** from **`bria-packshot`**.
 - Running the local **`Packshot`** pipeline on a sample product image URL.
 - Producing both white-background and transparent-background packshot outputs.
 
@@ -19,12 +19,14 @@ To use Packshot from this distribution, you will need:
 - Linux with Python 3.10 or newer.
 - Network access to the Bria Engine and AWS CodeArtifact.
 - `BRIA_API_TOKEN`, used to request a short-lived CodeArtifact credential.
+- `HF_TOKEN`, used by the Packshot runtime to access required Hugging Face assets.
 - A runtime that can execute the underlying `cutout` package.
 
-Set your API token before running the notebook:
+Set your API token and Hugging Face token before running the notebook:
 
 ```bash
 export BRIA_API_TOKEN="your-api-token-here"
+export HF_TOKEN="your-hugging-face-token-here"
 ```
 
 ## CodeArtifact Token
@@ -32,7 +34,7 @@ export BRIA_API_TOKEN="your-api-token-here"
 Call the Bria Engine once to obtain a PyPI password for the CodeArtifact repository:
 
 ```http
-GET https://engine.prod.bria-api.com/v2/auth/access/code_artifact?repository=bria-everywhere-testing
+GET https://engine.prod.bria-api.com/v2/auth/access/code_artifact?repository=bria-packshot
 api_token: <BRIA_API_TOKEN>
 User-Agent: BriaPlatform/APIdocs/LLMsAgent
 ```
@@ -46,11 +48,8 @@ The notebook URL-encodes the token and installs from CodeArtifact. If you alread
 ```bash
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 python3 -m pip install --upgrade "packshot" \
-  --extra-index-url "https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-everywhere-testing/simple/" \
-  --extra-index-url "https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-external/simple/"
+  --extra-index-url "https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-packshot/simple/" 
 ```
-
-`bria-everywhere-testing` provides `packshot` and `cutout`; `bria-external` provides shared Bria runtime dependencies.
 
 ## Run The Notebook
 
