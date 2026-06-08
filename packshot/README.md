@@ -21,7 +21,7 @@ To use Packshot from this distribution, you will need:
 - `BRIA_API_TOKEN`, used to request a short-lived CodeArtifact credential.
 - `HF_TOKEN`, used by the Packshot runtime to access required Hugging Face assets.
 - An NVIDIA GPU runtime for the underlying `cutout` package.
-- A CUDA-compatible NVIDIA driver. This example is configured for an existing CUDA 12.x driver and installs PyTorch/Torchvision from the CUDA 12.6 PyTorch wheel index.
+- A CUDA-compatible NVIDIA driver. For CUDA 12.x drivers, this example installs PyTorch/Torchvision from the CUDA 12.6 PyTorch wheel index.
 
 Check the driver-supported CUDA version with:
 
@@ -57,7 +57,7 @@ python3 -m pip install --upgrade --force-reinstall torch torchvision \
   --index-url "https://download.pytorch.org/whl/cu126"
 
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
-python3 -m pip install --upgrade "packshot" \
+python3 -m pip install --upgrade "numpy>=1.24,<1.25" "packshot" \
   --upgrade-strategy only-if-needed \
   --extra-index-url "https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-packshot/simple/"
 ```
