@@ -20,7 +20,14 @@ To use Packshot from this distribution, you will need:
 - Network access to the Bria Engine and AWS CodeArtifact.
 - `BRIA_API_TOKEN`, used to request a short-lived CodeArtifact credential.
 - `HF_TOKEN`, used by the Packshot runtime to access required Hugging Face assets.
-- A runtime that can execute the underlying `cutout` package.
+- An NVIDIA GPU runtime for the underlying `cutout` package.
+- A CUDA-compatible NVIDIA driver. This example is configured for an existing CUDA 12.x driver and installs PyTorch/Torchvision from the CUDA 12.6 PyTorch wheel index.
+
+Check the driver-supported CUDA version with:
+
+```bash
+nvidia-smi
+```
 
 Set your API token and Hugging Face token before running the notebook:
 
@@ -43,12 +50,16 @@ Use `result.authorization_token` as the password for the CodeArtifact PyPI simpl
 
 ## Install `packshot`
 
-The notebook URL-encodes the token and installs from CodeArtifact. If you already have a token, the equivalent shell command is:
+The notebook URL-encodes the token, installs CUDA-compatible PyTorch/Torchvision wheels, then installs Packshot from CodeArtifact. If you already have a token, the equivalent shell commands are:
 
 ```bash
+python3 -m pip install --upgrade --force-reinstall torch torchvision \
+  --index-url "https://download.pytorch.org/whl/cu126"
+
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 python3 -m pip install --upgrade "packshot" \
-  --extra-index-url "https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-packshot/simple/" 
+  --upgrade-strategy only-if-needed \
+  --extra-index-url "https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-packshot/simple/"
 ```
 
 ## Run The Notebook
