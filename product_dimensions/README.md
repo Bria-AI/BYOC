@@ -61,9 +61,7 @@ export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 CODEARTIFACT_BASE="https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi"
 python3 -m pip install --upgrade "product_dimensions" \
   --upgrade-strategy only-if-needed \
-  --extra-index-url "${CODEARTIFACT_BASE}/bria-product-dimensions/simple/" \
-  --extra-index-url "${CODEARTIFACT_BASE}/bria-remove-bg/simple/" \
-  --extra-index-url "${CODEARTIFACT_BASE}/bria-external/simple/"
+  --extra-index-url "${CODEARTIFACT_BASE}/bria-product-dimensions/simple/"
 ```
 
 ## Run The Notebook
