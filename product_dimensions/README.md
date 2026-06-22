@@ -85,4 +85,4 @@ You call the library directly:
 5. Save or display `result.image`. When `output_format="dual"`, `result.overlay` contains the transparent overlay image.
 6. Call `pipeline.cleanup()` when finished.
 
-`DimensionEntry.name` accepts `height`, `width_bottom`, `width_top`, `length`, or `depth`. `units_display` controls how duplicate entries with the same name and position are merged (`single`, `dual_bullet`, `dual_slash`, or `dual_parens`). `background` accepts `white`, `cream`, `charcoal`, or a hex color such as `#FFFFFF`.
+`DimensionEntry.name` accepts `height`, `width_bottom`, `width_top`. `units_display` controls how duplicate entries with the same name and position are merged (`single`, `dual_bullet`, `dual_slash`, or `dual_parens`). `background` accepts `white`, `cream`, `charcoal`, or a hex color such as `#FFFFFF`.
