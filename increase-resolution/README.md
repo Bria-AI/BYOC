@@ -53,8 +53,10 @@ username `aws`.
 
 ```bash
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
+# URL-encode the token so characters like +, /, = don't break the index URL
+ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
 python3 -m pip install --upgrade "increase-resolution" \
-  --extra-index-url "https://aws:${CODE_ARTIFACT_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-resolution/simple/"
+  --extra-index-url "https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-resolution/simple/"
 ```
 
 You must also have `torch` and `tensorrt==8.4.*` installed matching your CUDA 11.7 environment.
@@ -64,7 +66,7 @@ You must also have `torch` and `tensorrt==8.4.*` installed matching your CUDA 11
 Bria provides the super-resolution engines as `.engine` files (one per scale). Download them to a
 local folder and pass the paths to the pipeline config:
 
-```
+```text
 increase_resolution2.engine   # 2x
 increase_resolution4.engine   # 4x
 ```
