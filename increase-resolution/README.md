@@ -24,14 +24,19 @@ The pipeline runs a **TensorRT engine**, which is compiled for one specific runt
 load on a matching environment:
 
 - **GPU:** NVIDIA **A10** (Ampere), or another Ampere GPU of the same compute capability.
-- **CUDA:** **11.7**.
-- **TensorRT:** **8.4.x**.
-- **Python:** 3.10.
+- **CUDA:** **11.7.1**.
+- **TensorRT:** **8.4.1.5** (exact — a different 8.4.x patch will not load the engine).
+- **Python:** **3.10**.
 - Network access to the Bria Engine and AWS CodeArtifact.
 - `BRIA_API_TOKEN`, used to request a short-lived CodeArtifact credential.
 
-> These versions are not flexible. A TensorRT engine is tied to the GPU architecture and the
-> TensorRT/CUDA versions it was built with; a different GPU or newer TensorRT will fail to load it.
+> These versions are not flexible. A TensorRT engine is tied to the exact GPU architecture and the
+> TensorRT/CUDA versions it was built with; a different GPU or a different TensorRT patch will fail
+> to load it.
+>
+> **Runtime:** the exact CUDA 11.7.1 libraries are not available from pip, so the supported base is
+> the NVIDIA image **`nvcr.io/nvidia/pytorch:22.07-py3`** (CUDA 11.7.1 + TensorRT 8.4.1.5); install
+> this package into a Python 3.10 environment on top of it.
 
 ```bash
 export BRIA_API_TOKEN="your-api-token-here"
