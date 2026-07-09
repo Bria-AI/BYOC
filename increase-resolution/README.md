@@ -104,13 +104,40 @@ increase_resolution2.engine   # 2x
 increase_resolution4.engine   # 4x
 ```
 
-## Run the notebook
+## Run the notebooks
+
+Two walkthroughs are included:
+
+- **`code_example.ipynb`** — simple **image → image** on one machine (`pipeline.execute`).
+- **`code_example_distributed.ipynb`** — **tile-level** flow for spreading the GPU work across
+  **multiple worker machines**: `split` (coordinator) → `TileWorker.infer` (per worker GPU) →
+  `merge` (coordinator).
 
 ```bash
-jupyter notebook code_example.ipynb
+jupyter notebook code_example.ipynb              # simple
+jupyter notebook code_example_distributed.ipynb  # distributed (tile-level)
 ```
 
-The notebook saves generated files under `outputs/`.
+The notebooks save generated files under `outputs/`.
+
+## Distributed (tile-level) usage
+
+For high throughput or many GPUs across separate machines, run the tile inference on your own fleet.
+The pipeline exposes the three steps so the transport in the middle is yours (queue / RPC / Ray / …):
+
+```python
+from increase_resolution import split, merge, TileWorker
+
+res = split(image, scale=4)                        # coordinator (CPU): independent numpy tiles + layout
+# --- ship res.tiles to your worker machines; each runs the engine once and returns infer(tile) ---
+worker = TileWorker(".../increase_resolution4.engine").setup()
+upscaled = [worker.infer(t) for t in res.tiles]    # <-- replace with your cross-machine fan-out
+# ----------------------------------------------------------------------------------------------
+merge(upscaled, res.layout, res.alpha).save("upscaled.png")   # coordinator (CPU): stitch back
+```
+
+`split`/`merge` need no GPU or engine; only the workers do. Tiles are plain numpy arrays so your
+transport can serialize them. The output is identical to the single-call `execute`.
 
 ## Using the Python package
 
