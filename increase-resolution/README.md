@@ -56,15 +56,19 @@ unset PYTHONPATH          # keep the image's Python 3.8 packages out of the venv
 unset LD_LIBRARY_PATH     # keep the image's system libtorch from shadowing the venv's torch
 
 python3.10 -m venv /opt/ir && source /opt/ir/bin/activate   # or: uv venv --python 3.10 /opt/ir
+
+# torch and tensorrt live on their own indexes, so install them explicitly first:
 pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cu117
 pip install "nvidia-tensorrt==8.4.1.5" --extra-index-url https://pypi.ngc.nvidia.com
-pip install "numpy<2"
 
 # the engine's Myelin graph needs this exact cuBLAS (the image provides it; pip does not)
 export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
 ```
 
-Then install `increase-resolution` (next section) into this environment and run the notebook.
+`torch` (cu117 build) and `tensorrt` (NVIDIA index) are the only dependencies you install by hand —
+their package indexes can't be expressed in the wheel's metadata. **Everything else (`numpy`,
+`pydantic`, `opencv`, `pillow`, the `bria-external-*` packages) installs automatically** when you
+`pip install increase-resolution` in the next section.
 
 ## CodeArtifact Token
 
