@@ -1,7 +1,7 @@
 # Increase Resolution: BYOC Super-Resolution Pipeline
 
 This folder documents the **Python package** path for running Increase Resolution in your own
-environment: install **`increase-resolution`** from the **`bria-increase-resolution`** AWS
+environment: install **`increase-resolution`** from the **`bria-increase-res`** AWS
 CodeArtifact repository, download the Bria super-resolution **TensorRT engine(s)**, then call the
 local pipeline directly from Python.
 
@@ -14,7 +14,7 @@ are merged back into the full-resolution result.
 The included **`code_example.ipynb`** notebook demonstrates:
 
 - Obtaining a short-lived CodeArtifact credential from the Bria Engine.
-- Installing **`increase-resolution`** from **`bria-increase-resolution`**.
+- Installing **`increase-resolution`** from **`bria-increase-res`**.
 - Downloading the super-resolution **`.engine`** files provided by Bria.
 - Running the local **`IncreaseResolution`** pipeline on a sample image at 2× and 4×.
 
@@ -70,7 +70,7 @@ resolves automatically.
 Call the Bria Engine once to obtain a PyPI password for the CodeArtifact repository:
 
 ```http
-GET https://engine.prod.bria-api.com/v2/auth/access/code_artifact?repository=bria-increase-resolution
+GET https://engine.prod.bria-api.com/v2/auth/access/code_artifact?repository=bria-increase-res
 api_token: <BRIA_API_TOKEN>
 ```
 
@@ -91,7 +91,7 @@ Install the extra for your role:
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 # URL-encode the token so characters like +, /, = don't break the index URL
 ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
-BRIA_IDX="https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-resolution/simple/"
+BRIA_IDX="https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-res/simple/"
 
 # full pipeline / worker (needs torch cu117 + nvidia-tensorrt from their indexes):
 python3 -m pip install --upgrade "increase-resolution[all]" \
