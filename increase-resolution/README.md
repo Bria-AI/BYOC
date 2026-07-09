@@ -57,18 +57,13 @@ unset LD_LIBRARY_PATH     # keep the image's system libtorch from shadowing the 
 
 python3.10 -m venv /opt/ir && source /opt/ir/bin/activate   # or: uv venv --python 3.10 /opt/ir
 
-# torch and tensorrt live on their own indexes, so install them explicitly first:
-pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cu117
-pip install "nvidia-tensorrt==8.4.1.5" --extra-index-url https://pypi.ngc.nvidia.com
-
 # the engine's Myelin graph needs this exact cuBLAS (the image provides it; pip does not)
 export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
 ```
 
-`torch` (cu117 build) and `tensorrt` (NVIDIA index) are the only dependencies you install by hand —
-their package indexes can't be expressed in the wheel's metadata. **Everything else (`numpy`,
-`pydantic`, `opencv`, `pillow`, the `bria-external-*` packages) installs automatically** when you
-`pip install increase-resolution` in the next section.
+The GPU runtime (`torch` cu117 + `nvidia-tensorrt`) is pulled in by the `[gpu]`/`[all]` extra in the
+next section (from its package indexes); everything else (numpy/opencv/pillow/pydantic/bria-external)
+resolves automatically.
 
 ## CodeArtifact Token
 
@@ -84,12 +79,28 @@ username `aws`.
 
 ## Install `increase-resolution`
 
+Install the extra for your role:
+
+| Extra | Role | Needs the cu117 / NVIDIA indexes? |
+|---|---|---|
+| `[all]` | single-machine full pipeline (`execute`) | yes |
+| `[gpu]` | worker: tile inference (`TileWorker.infer`) | yes |
+| `[cpu]` | coordinator: `split` / `merge` | no (no torch/tensorrt) |
+
 ```bash
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 # URL-encode the token so characters like +, /, = don't break the index URL
 ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
-python3 -m pip install --upgrade "increase-resolution" \
-  --extra-index-url "https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-resolution/simple/"
+BRIA_IDX="https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-resolution/simple/"
+
+# full pipeline / worker (needs torch cu117 + nvidia-tensorrt from their indexes):
+python3 -m pip install --upgrade "increase-resolution[all]" \
+  --extra-index-url https://download.pytorch.org/whl/cu117 \
+  --extra-index-url https://pypi.ngc.nvidia.com \
+  --extra-index-url "$BRIA_IDX"
+
+# coordinator only (split/merge — no GPU, so no extra indexes needed):
+python3 -m pip install --upgrade "increase-resolution[cpu]" --extra-index-url "$BRIA_IDX"
 ```
 
 You must also have `torch` and `tensorrt==8.4.*` installed matching your CUDA 11.7 environment.
