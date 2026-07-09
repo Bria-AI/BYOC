@@ -42,6 +42,30 @@ load on a matching environment:
 export BRIA_API_TOKEN="your-api-token-here"
 ```
 
+## Runtime setup (required)
+
+The engine is compiled against the exact CUDA 11.7.1 libraries in the NVIDIA `22.07` image, and those
+libraries are not available from pip. Start from that base image and prepare a Python 3.10 environment
+on top of it. This exact sequence was validated end-to-end on an A10:
+
+```bash
+docker run --gpus all -it -v /path/to/engines:/engines nvcr.io/nvidia/pytorch:22.07-py3 bash
+
+# inside the container:
+unset PYTHONPATH          # keep the image's Python 3.8 packages out of the venv
+unset LD_LIBRARY_PATH     # keep the image's system libtorch from shadowing the venv's torch
+
+python3.10 -m venv /opt/ir && source /opt/ir/bin/activate   # or: uv venv --python 3.10 /opt/ir
+pip install torch==2.0.1 --index-url https://download.pytorch.org/whl/cu117
+pip install "nvidia-tensorrt==8.4.1.5" --extra-index-url https://pypi.ngc.nvidia.com
+pip install "numpy<2"
+
+# the engine's Myelin graph needs this exact cuBLAS (the image provides it; pip does not)
+export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
+```
+
+Then install `increase-resolution` (next section) into this environment and run the notebook.
+
 ## CodeArtifact Token
 
 Call the Bria Engine once to obtain a PyPI password for the CodeArtifact repository:
