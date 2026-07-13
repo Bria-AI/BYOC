@@ -111,8 +111,8 @@ from PIL import Image
 
 config = EraseConfig(
     lama_model_path=str(weights / "lama" / "model.pt"),
-    vae_model_path=weights / "vae",
-    eraser_controlnet_path=weights / "controlnet_xl_eraser",
+    vae_model_path=str(weights / "vae"),
+    eraser_controlnet_path=str(weights / "controlnet_xl_eraser"),
     base_pipe_model_path=str(weights / "BRIA-2.3-FAST-LORA-FUSED"),
     scheduler_config_path=str(weights / "BRIA-2.3-FAST-LORA-FUSED" / "scheduler" / "scheduler_config.json"),
 )
