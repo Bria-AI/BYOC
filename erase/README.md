@@ -55,9 +55,10 @@ username `aws`.
 
 ## Install `erase`
 
-Erase is a single GPU package — there is no CPU/GPU role split. `torch`, `diffusers`, `opencv` and
-the `bria-external-ml` base (the shared `Pipeline` interface) resolve automatically. The base lives
-in the `bria-external` CodeArtifact repo, so add it as a second index (same credential):
+Erase is a single GPU package — there is no CPU/GPU role split. A **single index** is enough: the
+`bria-erase` repo has `bria-external` and `bria-diffusers` (plus public PyPI) as upstream
+repositories, so `erase` and all its deps (`torch`, `diffusers`, `bria-external-ml`,
+`bria-diffusers`, …) resolve through this one token/index:
 
 ```bash
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
@@ -65,11 +66,8 @@ export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
 HOST="bria-300465780738.d.codeartifact.us-east-1.amazonaws.com"
 BRIA_IDX="https://aws:${ENCODED_PASSWORD}@${HOST}/pypi/bria-erase/simple/"
-EXTERNAL_IDX="https://aws:${ENCODED_PASSWORD}@${HOST}/pypi/bria-external/simple/"
 
-python3 -m pip install --upgrade "erase" \
-  --extra-index-url "$BRIA_IDX" \
-  --extra-index-url "$EXTERNAL_IDX"
+python3 -m pip install --upgrade "erase" --extra-index-url "$BRIA_IDX"
 ```
 
 ## Model weights
