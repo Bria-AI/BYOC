@@ -56,9 +56,9 @@ username `aws`.
 ## Install `erase`
 
 Erase is a single GPU package — there is no CPU/GPU role split. A **single index** is enough: the
-`bria-erase` repo has `bria-external` and `bria-diffusers` (plus public PyPI) as upstream
-repositories, so `erase` and all its deps (`torch`, `diffusers`, `bria-external-ml`,
-`bria-diffusers`, …) resolve through this one token/index:
+`bria-erase` repo has `bria-external` and `bria-diffusers` as upstream repositories, so the Bria
+packages (`erase`, `bria-external-ml`/`image`, `bria-diffusers`) resolve through this one
+token/index; `torch`, `diffusers`, etc. come from PyPI (pip's default index):
 
 ```bash
 export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
