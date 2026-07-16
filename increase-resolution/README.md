@@ -49,7 +49,7 @@ docker run --gpus all --ipc=host -it -p 8888:8888 -v "$PWD":/work \
 
 **2. Connect your editor to it.** In VS Code / Cursor: open `code_example.ipynb` → kernel picker
 (top-right) → **Select Another Kernel… → Existing Jupyter Server…** → enter
-`http://localhost:8888` and the **token** printed in the log above → pick the **Python 3** kernel.
+`http://localhost:8888` and the **token** printed in the log above (for example http://localhost:8888?token='abc') → pick the **Python 3** kernel.
 
 **3. Run the notebook top-to-bottom.** It fetches the CodeArtifact token, `pip install`s the package
 (torch-cu117 + tensorrt — a few minutes the first time), pulls the engines from
