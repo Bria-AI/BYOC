@@ -136,19 +136,26 @@ engine only loads in this runtime). Two walkthroughs:
   **multiple worker machines**: `split` (coordinator) → `TileWorker.infer` (per worker GPU) →
   `merge` (coordinator).
 
-Start a Jupyter server *in the container* and drive it from your editor. Start the container per
-"Runtime setup" but add `-p 8888:8888 -v "$PWD":/work` (run `docker run` from this folder), do the
-in-container setup, then:
+Start a Jupyter server *in the container* and drive it from your editor. Run this **one command from
+this folder** — it starts the container with the notebooks mounted (`-v "$PWD":/work`) and the port
+published (`-p 8888:8888`), does the setup, and launches Jupyter. (Both `-v` and `-p` must be on the
+`docker run` itself — you can't add them to an already-running container.)
 
 ```bash
-uv pip install jupyterlab ipykernel
-cd /work && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
+docker run --gpus all --ipc=host -it -p 8888:8888 -v "$PWD":/work \
+  -e BRIA_API_TOKEN="$BRIA_API_TOKEN" -e HF_TOKEN="$HF_TOKEN" \
+  nvcr.io/nvidia/pytorch:22.07-py3 bash -lc '
+    unset PYTHONPATH LD_LIBRARY_PATH
+    curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=/root/.local/bin:$PATH
+    uv venv --python 3.10 /opt/ir && . /opt/ir/bin/activate && uv pip install pip jupyterlab ipykernel
+    export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
+    cd /work && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root'
 ```
 
 Then in VS Code / Cursor: open the notebook → kernel picker → **Existing Jupyter Server** →
-`http://localhost:8888` (token from the jupyter log) → **run top-to-bottom**. The notebook installs
-`increase-resolution`, pulls the engines from `briaai/increase-resolution`, and runs on the A10G;
-outputs are saved under `outputs/`. (Headless alternative: `jupyter nbconvert --to notebook --execute code_example.ipynb`.)
+`http://localhost:8888` (use the `?token=…` printed in the log) → **run top-to-bottom**. The notebook
+installs `increase-resolution`, pulls the engines from `briaai/increase-resolution`, and runs on the
+A10G; outputs are saved under `outputs/`. (Headless alternative: `jupyter nbconvert --to notebook --execute code_example.ipynb`.)
 
 ## Distributed (tile-level) usage
 
