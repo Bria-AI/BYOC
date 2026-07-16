@@ -107,8 +107,10 @@ export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
 BRIA_IDX="https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-res/simple/"
 
-# full pipeline / worker (needs torch cu117 + nvidia-tensorrt from their indexes):
-python3 -m pip install --upgrade "increase-resolution[all]" \
+# full pipeline / worker (needs torch cu117 + nvidia-tensorrt from their indexes).
+# huggingface_hub is added explicitly — it's used to download the engines (below) but is not a
+# dependency of the increase-resolution package itself:
+python3 -m pip install --upgrade "increase-resolution[all]" huggingface_hub \
   --extra-index-url https://download.pytorch.org/whl/cu117 \
   --extra-index-url https://pypi.ngc.nvidia.com \
   --extra-index-url "$BRIA_IDX"
@@ -120,7 +122,8 @@ python3 -m pip install --upgrade "increase-resolution[cpu]" --extra-index-url "$
 ### Engine files
 
 Bria hosts the super-resolution engines on the gated HF repo **`briaai/increase-resolution`** (request
-access on Hugging Face; once Bria approves, set `HF_TOKEN`). Fetch them with `huggingface_hub`:
+access on Hugging Face; once Bria approves, set `HF_TOKEN`). Fetch them with `huggingface_hub` (added
+to the install above; if you used `[gpu]`/`[cpu]`, `pip install huggingface_hub` first):
 
 ```python
 from huggingface_hub import hf_hub_download
