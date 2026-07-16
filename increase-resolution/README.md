@@ -1,71 +1,87 @@
 # Increase Resolution: BYOC Super-Resolution Pipeline
 
-This folder documents the **Python package** path for running Increase Resolution in your own
-environment: install **`increase-resolution`** from the **`bria-increase-res`** AWS
-CodeArtifact repository, download the Bria super-resolution **TensorRT engine(s)**, then call the
-local pipeline directly from Python.
+Run Bria **Increase Resolution** (2×/4× super-resolution) in your own environment. An image is split into overlapping tiles, each tile is upscaled by the
+engine in-process, and the tiles are merged back into the full-resolution result.
 
-Increase Resolution upscales an image **2×** or **4×** using a SwinIR super-resolution model. The
-image is split into overlapping tiles, each tile is upscaled by the engine in-process, and the tiles
-are merged back into the full-resolution result.
-
-## Overview
-
-The included **`code_example.ipynb`** notebook demonstrates:
-
-- Obtaining a short-lived CodeArtifact credential from the Bria Engine.
-- Installing **`increase-resolution`** from **`bria-increase-res`**.
-- Downloading the super-resolution **`.engine`** files provided by Bria.
-- Running the local **`IncreaseResolution`** pipeline on a sample image at 2× and 4×.
+Because it's a TensorRT engine, it runs **only** inside a specific NVIDIA container on an Ampere GPU
+(see Prerequisites). The fastest way to try it is the example notebook — the **Quickstart** below.
 
 ## Prerequisites — exact environment (required)
 
-The pipeline runs a **TensorRT engine**, which is compiled for one specific runtime. It will only
-load on a matching environment:
+A TensorRT engine is tied to the exact GPU architecture + CUDA/TensorRT it was built with, so the
+runtime is **not** flexible:
 
-- **GPU:** NVIDIA **A10** (Ampere), or another Ampere GPU of the same compute capability.
-- **CUDA:** **11.7.1**.
-- **TensorRT:** **8.4.1.5** (exact — a different 8.4.x patch will not load the engine).
-- **Python:** **3.10**.
-- Network access to the Bria Engine and AWS CodeArtifact.
-- `BRIA_API_TOKEN`, used to request a short-lived CodeArtifact credential.
+- **GPU:** NVIDIA **Ampere** — **A10 / A10G** (on AWS: a **g5** instance).
+- **Runtime:** the NVIDIA container **`nvcr.io/nvidia/pytorch:22.07-py3`** (CUDA **11.7.1** + TensorRT
+  **8.4.1.5**) — those exact libraries aren't on pip, so everything runs inside this image; **Python 3.10**.
+- **`BRIA_API_TOKEN`** — a custom-plan Bria token (used to get a short-lived CodeArtifact credential).
+- **`HF_TOKEN`** — with **approved access to the gated `briaai/increase-resolution`** HF repo (request
+  access on Hugging Face; Bria approves) — the engines are hosted there.
+- Network access to the Bria Engine, AWS CodeArtifact, and Hugging Face.
 
-> These versions are not flexible. A TensorRT engine is tied to the exact GPU architecture and the
-> TensorRT/CUDA versions it was built with; a different GPU or a different TensorRT patch will fail
-> to load it.
->
-> **Runtime:** the exact CUDA 11.7.1 libraries are not available from pip, so the supported base is
-> the NVIDIA image **`nvcr.io/nvidia/pytorch:22.07-py3`** (CUDA 11.7.1 + TensorRT 8.4.1.5); install
-> this package into a Python 3.10 environment on top of it.
+## Quickstart — run the example notebook
 
-```bash
-export BRIA_API_TOKEN="your-api-token-here"
-```
+This is the whole thing. You start the NVIDIA container (with Jupyter) and run the notebook, which
+does everything for you: fetch the CodeArtifact token → install `increase-resolution` → pull the
+engines from HF → upscale. Two walkthroughs are included:
 
-## Runtime setup (required)
+- **`code_example.ipynb`** — simple image → image on one machine.
+- **`code_example_distributed.ipynb`** — tile-level flow for spreading GPU work across machines.
 
-The engine is compiled against the exact CUDA 11.7.1 libraries in the NVIDIA `22.07` image, and those
-libraries are not available from pip. Start from that base image and prepare a Python 3.10 environment
-on top of it. This exact sequence was validated end-to-end on an A10:
+**1. Start the container + Jupyter — one command, run from this folder** (`BYOC/increase-resolution/`).
+It mounts the notebooks (`-v "$PWD":/work`), publishes the Jupyter port (`-p 8888:8888`), sets up
+Python 3.10, and launches Jupyter. (Both `-v` and `-p` must be on the `docker run` — you can't add
+them to an already-running container.)
 
 ```bash
-docker run --gpus all -it -v /path/to/engines:/engines nvcr.io/nvidia/pytorch:22.07-py3 bash
+export BRIA_API_TOKEN="your-custom-plan-token"
+export HF_TOKEN="your-hf-token"     # must have approved access to gated briaai/increase-resolution
 
-# inside the container:
-unset PYTHONPATH          # keep the image's Python 3.8 packages out of the venv
-unset LD_LIBRARY_PATH     # keep the image's system libtorch from shadowing the venv's torch
-
-python3.10 -m venv /opt/ir && source /opt/ir/bin/activate   # or: uv venv --python 3.10 /opt/ir
-
-# the engine's Myelin graph needs this exact cuBLAS (the image provides it; pip does not)
-export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
+docker run --gpus all --ipc=host -it -p 8888:8888 -v "$PWD":/work \
+  -e BRIA_API_TOKEN="$BRIA_API_TOKEN" -e HF_TOKEN="$HF_TOKEN" \
+  nvcr.io/nvidia/pytorch:22.07-py3 bash -lc '
+    unset PYTHONPATH LD_LIBRARY_PATH
+    curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=/root/.local/bin:$PATH
+    uv venv --python 3.10 /opt/ir && . /opt/ir/bin/activate && uv pip install pip jupyterlab ipykernel huggingface_hub
+    export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
+    cd /work && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root'
 ```
 
-The GPU runtime (`torch` cu117 + `nvidia-tensorrt`) is pulled in by the `[gpu]`/`[all]` extra in the
-next section (from its package indexes); everything else (numpy/opencv/pillow/pydantic/bria-external)
-resolves automatically.
+**2. Connect your editor to it.** In VS Code / Cursor: open `code_example.ipynb` → kernel picker
+(top-right) → **Select Another Kernel… → Existing Jupyter Server…** → enter
+`http://localhost:8888` and the **token** printed in the log above (for example http://localhost:8888?token='abc') → pick the **Python 3** kernel.
 
-## CodeArtifact Token
+**3. Run the notebook top-to-bottom.** It fetches the CodeArtifact token, `pip install`s the package
+(torch-cu117 + tensorrt — a few minutes the first time), pulls the engines from
+`briaai/increase-resolution` with your `HF_TOKEN`, and upscales the sample at 2× and 4×. Outputs are
+saved under `outputs/`.
+
+> Your `BRIA_API_TOKEN` / `HF_TOKEN` are passed into the container as env vars, so the notebook's
+> token cells just work. You do **not** run the manual steps below — the notebook does them for you.
+> `code_example_distributed.ipynb` runs the same way (same server + kernel).
+
+---
+
+## Installing the package directly (without the notebook)
+
+Everything below is what the notebook automates. Do it by hand **only** if you're integrating the
+`increase-resolution` package into your own code / CLI. Start the same container **without** the
+Jupyter/mount parts:
+
+```bash
+docker run --gpus all --ipc=host -it \
+  -e BRIA_API_TOKEN="$BRIA_API_TOKEN" -e HF_TOKEN="$HF_TOKEN" \
+  nvcr.io/nvidia/pytorch:22.07-py3 bash
+
+# inside the container — build the Python 3.10 env (the image ships 3.8):
+unset PYTHONPATH LD_LIBRARY_PATH          # keep the image's 3.8 packages / system libtorch out of the venv
+curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH="/root/.local/bin:$PATH"
+uv venv --python 3.10 /opt/ir && source /opt/ir/bin/activate
+uv pip install pip                        # a uv venv has no pip
+export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11   # the engine's Myelin graph needs this exact cuBLAS
+```
+
+### CodeArtifact token
 
 Call the Bria Engine once to obtain a PyPI password for the CodeArtifact repository:
 
@@ -74,12 +90,9 @@ GET https://engine.prod.bria-api.com/v2/auth/access/code_artifact?repository=bri
 api_token: <BRIA_API_TOKEN>
 ```
 
-Use `result.authorization_token` as the password for the CodeArtifact PyPI simple index with
-username `aws`.
+Use `result.authorization_token` as the password for the CodeArtifact PyPI simple index (username `aws`).
 
-## Install `increase-resolution`
-
-Install the extra for your role:
+### Install `increase-resolution`
 
 | Extra | Role | Needs the cu117 / NVIDIA indexes? |
 |---|---|---|
@@ -93,8 +106,10 @@ export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
 BRIA_IDX="https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-res/simple/"
 
-# full pipeline / worker (needs torch cu117 + nvidia-tensorrt from their indexes):
-python3 -m pip install --upgrade "increase-resolution[all]" \
+# full pipeline / worker (needs torch cu117 + nvidia-tensorrt from their indexes).
+# huggingface_hub is added explicitly — it's used to download the engines (below) but is not a
+# dependency of the increase-resolution package itself:
+python3 -m pip install --upgrade "increase-resolution[all]" huggingface_hub \
   --extra-index-url https://download.pytorch.org/whl/cu117 \
   --extra-index-url https://pypi.ngc.nvidia.com \
   --extra-index-url "$BRIA_IDX"
@@ -103,37 +118,19 @@ python3 -m pip install --upgrade "increase-resolution[all]" \
 python3 -m pip install --upgrade "increase-resolution[cpu]" --extra-index-url "$BRIA_IDX"
 ```
 
-You must also have `torch` and `tensorrt==8.4.*` installed matching your CUDA 11.7 environment.
+### Engine files
 
-## Engine files
+Bria hosts the super-resolution engines on the gated HF repo **`briaai/increase-resolution`** (request
+access on Hugging Face; once Bria approves, set `HF_TOKEN`). Fetch them with `huggingface_hub` (added
+to the install above; if you used `[gpu]`/`[cpu]`, `pip install huggingface_hub` first):
 
-Bria hosts the super-resolution engines on the Hugging Face repo **`briaai/increase-resolution`**
-(private — request/receive access from Bria, then set `HF_TOKEN`). The notebook fetches them with
-`huggingface_hub.hf_hub_download`; the two files are:
-
-```text
-increase_resolution2.engine   # 2x
-increase_resolution4.engine   # 4x
+```python
+from huggingface_hub import hf_hub_download
+engine_paths = {s: hf_hub_download("briaai/increase-resolution", f"increase_resolution{s}.engine") for s in (2, 4)}
 ```
 
-> These are TensorRT builds tied to the exact GPU + CUDA/TensorRT runtime documented above — they
-> only load on a matching environment.
-
-## Run the notebooks
-
-Two walkthroughs are included:
-
-- **`code_example.ipynb`** — simple **image → image** on one machine (`pipeline.execute`).
-- **`code_example_distributed.ipynb`** — **tile-level** flow for spreading the GPU work across
-  **multiple worker machines**: `split` (coordinator) → `TileWorker.infer` (per worker GPU) →
-  `merge` (coordinator).
-
-```bash
-jupyter notebook code_example.ipynb              # simple
-jupyter notebook code_example_distributed.ipynb  # distributed (tile-level)
-```
-
-The notebooks save generated files under `outputs/`.
+> These are TensorRT builds tied to the exact GPU + CUDA/TensorRT runtime above — they only load on a
+> matching environment.
 
 ## Distributed (tile-level) usage
 
