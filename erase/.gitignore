@@ -1,0 +1,9 @@
+# Jupyter autosave
+.ipynb_checkpoints/
+
+# Notebook run artifacts
+outputs/
+erased.png
+compare.png
+input.png
+mask.png
