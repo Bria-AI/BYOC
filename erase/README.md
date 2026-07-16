@@ -33,7 +33,7 @@ Unlike Increase Resolution, Erase is **not** a TensorRT engine — it runs the s
 - **Python:** **3.10+**.
 - **Torch:** **2.2.2** (installed automatically from PyPI; the default build targets CUDA 12.1).
 - **`BRIA_API_TOKEN`** — to request a short-lived CodeArtifact credential.
-- **`HF_TOKEN`** — for Hugging Face access to the `briaai/Expansion` model repo.
+- **`HF_TOKEN`** — for Hugging Face access to the `briaai/erase` model repo.
 - Network access to the Bria Engine, AWS CodeArtifact, and Hugging Face.
 
 ```bash
@@ -72,7 +72,7 @@ python3 -m pip install --upgrade "erase" --extra-index-url "$BRIA_IDX"
 
 ## Model weights
 
-Download the weights from the Hugging Face repo **`briaai/Expansion`** and pass the resulting local
+Download the weights from the Hugging Face repo **`briaai/erase`** and pass the resulting local
 directories into `EraseConfig` (the library is not opinionated about where weights come from — the
 repo id lives in your code, not inside the package):
 
@@ -81,7 +81,7 @@ from pathlib import Path
 from huggingface_hub import snapshot_download
 
 weights = Path(snapshot_download(
-    repo_id="briaai/Expansion",
+    repo_id="briaai/erase",
     token="<HF_TOKEN>",
     allow_patterns=["vae/**", "controlnet_xl_eraser/**", "BRIA-2.3-FAST-LORA-FUSED/**", "lama/**"],
 ))
