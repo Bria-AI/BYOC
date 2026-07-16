@@ -43,7 +43,7 @@ docker run --gpus all --ipc=host -it -p 8888:8888 -v "$PWD":/work \
   nvcr.io/nvidia/pytorch:22.07-py3 bash -lc '
     unset PYTHONPATH LD_LIBRARY_PATH
     curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH=/root/.local/bin:$PATH
-    uv venv --python 3.10 /opt/ir && . /opt/ir/bin/activate && uv pip install pip jupyterlab ipykernel
+    uv venv --python 3.10 /opt/ir && . /opt/ir/bin/activate && uv pip install pip jupyterlab ipykernel huggingface_hub
     export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
     cd /work && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root'
 ```
