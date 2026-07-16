@@ -107,13 +107,17 @@ You must also have `torch` and `tensorrt==8.4.*` installed matching your CUDA 11
 
 ## Engine files
 
-Bria provides the super-resolution engines as `.engine` files (one per scale). Download them to a
-local folder and pass the paths to the pipeline config:
+Bria hosts the super-resolution engines on the Hugging Face repo **`briaai/increase-resolution`**
+(private — request/receive access from Bria, then set `HF_TOKEN`). The notebook fetches them with
+`huggingface_hub.hf_hub_download`; the two files are:
 
 ```text
 increase_resolution2.engine   # 2x
 increase_resolution4.engine   # 4x
 ```
+
+> These are TensorRT builds tied to the exact GPU + CUDA/TensorRT runtime documented above — they
+> only load on a matching environment.
 
 ## Run the notebooks
 
