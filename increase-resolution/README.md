@@ -42,28 +42,35 @@ load on a matching environment:
 export BRIA_API_TOKEN="your-api-token-here"
 ```
 
-## Runtime setup (required)
+## Runtime setup (required) — a g5 (A10G) instance
 
-The engine is compiled against the exact CUDA 11.7.1 libraries in the NVIDIA `22.07` image, and those
-libraries are not available from pip. Start from that base image and prepare a Python 3.10 environment
-on top of it. This exact sequence was validated end-to-end on an A10:
+The engine is a TensorRT build compiled against the exact CUDA 11.7.1 / TensorRT 8.4.1.5 libraries in
+the NVIDIA `22.07` container, so it must run **inside that image on an Ampere GPU**. On AWS that's a
+**g5** instance (A10G). This exact sequence was validated end-to-end there:
 
 ```bash
-docker run --gpus all -it -v /path/to/engines:/engines nvcr.io/nvidia/pytorch:22.07-py3 bash
+# 1. pull the runtime image (once; ~22 GB, from NVIDIA NGC)
+docker pull nvcr.io/nvidia/pytorch:22.07-py3
 
-# inside the container:
-unset PYTHONPATH          # keep the image's Python 3.8 packages out of the venv
-unset LD_LIBRARY_PATH     # keep the image's system libtorch from shadowing the venv's torch
+# 2. start it with the GPU + your tokens.
+#    To run the notebooks, ALSO add:  -p 8888:8888 -v "$PWD":/work   (see "Run the notebooks")
+docker run --gpus all --ipc=host -it \
+  -e BRIA_API_TOKEN="$BRIA_API_TOKEN" -e HF_TOKEN="$HF_TOKEN" \
+  nvcr.io/nvidia/pytorch:22.07-py3 bash
 
-python3.10 -m venv /opt/ir && source /opt/ir/bin/activate   # or: uv venv --python 3.10 /opt/ir
-
-# the engine's Myelin graph needs this exact cuBLAS (the image provides it; pip does not)
-export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11
+# 3. inside the container — build a Python 3.10 env (the image ships 3.8):
+unset PYTHONPATH LD_LIBRARY_PATH          # keep the image's 3.8 packages / system libtorch out of the venv
+curl -LsSf https://astral.sh/uv/install.sh | sh && export PATH="/root/.local/bin:$PATH"
+uv venv --python 3.10 /opt/ir && source /opt/ir/bin/activate
+uv pip install pip                        # a uv venv has no pip; the install below (and the notebook) need it
+export LD_PRELOAD=/usr/local/cuda-11.7/targets/x86_64-linux/lib/libcublasLt.so.11   # the engine's Myelin graph needs this exact cuBLAS
 ```
 
-The GPU runtime (`torch` cu117 + `nvidia-tensorrt`) is pulled in by the `[gpu]`/`[all]` extra in the
-next section (from its package indexes); everything else (numpy/opencv/pillow/pydantic/bria-external)
-resolves automatically.
+- **`BRIA_API_TOKEN`** — your custom-plan Bria token (for the CodeArtifact credential below).
+- **`HF_TOKEN`** — needs **approved access to the gated `briaai/increase-resolution`** repo (request it
+  on Hugging Face; Bria approves). The notebook pulls the engines with it.
+- `torch` cu117 + `nvidia-tensorrt` come from the `[all]`/`[gpu]` extra in the install step; everything
+  else (numpy/opencv/pillow/pydantic/bria-external) resolves automatically.
 
 ## CodeArtifact Token
 
@@ -108,8 +115,8 @@ You must also have `torch` and `tensorrt==8.4.*` installed matching your CUDA 11
 ## Engine files
 
 Bria hosts the super-resolution engines on the Hugging Face repo **`briaai/increase-resolution`**
-(private — request/receive access from Bria, then set `HF_TOKEN`). The notebook fetches them with
-`huggingface_hub.hf_hub_download`; the two files are:
+(gated — request access on Hugging Face; once Bria approves, set `HF_TOKEN`). The notebook fetches
+them with `huggingface_hub.hf_hub_download`; the two files are:
 
 ```text
 increase_resolution2.engine   # 2x
@@ -121,19 +128,27 @@ increase_resolution4.engine   # 4x
 
 ## Run the notebooks
 
-Two walkthroughs are included:
+Both notebooks must run with a **kernel inside the container** (they can't run in a host venv — the
+engine only loads in this runtime). Two walkthroughs:
 
 - **`code_example.ipynb`** — simple **image → image** on one machine (`pipeline.execute`).
 - **`code_example_distributed.ipynb`** — **tile-level** flow for spreading the GPU work across
   **multiple worker machines**: `split` (coordinator) → `TileWorker.infer` (per worker GPU) →
   `merge` (coordinator).
 
+Start a Jupyter server *in the container* and drive it from your editor. Start the container per
+"Runtime setup" but add `-p 8888:8888 -v "$PWD":/work` (run `docker run` from this folder), do the
+in-container setup, then:
+
 ```bash
-jupyter notebook code_example.ipynb              # simple
-jupyter notebook code_example_distributed.ipynb  # distributed (tile-level)
+uv pip install jupyterlab ipykernel
+cd /work && jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --allow-root
 ```
 
-The notebooks save generated files under `outputs/`.
+Then in VS Code / Cursor: open the notebook → kernel picker → **Existing Jupyter Server** →
+`http://localhost:8888` (token from the jupyter log) → **run top-to-bottom**. The notebook installs
+`increase-resolution`, pulls the engines from `briaai/increase-resolution`, and runs on the A10G;
+outputs are saved under `outputs/`. (Headless alternative: `jupyter nbconvert --to notebook --execute code_example.ipynb`.)
 
 ## Distributed (tile-level) usage
 
