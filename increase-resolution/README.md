@@ -1,7 +1,6 @@
 # Increase Resolution: BYOC Super-Resolution Pipeline
 
-Run Bria **Increase Resolution** (2×/4× super-resolution) in your own environment. The model is a
-SwinIR **TensorRT engine**: an image is split into overlapping tiles, each tile is upscaled by the
+Run Bria **Increase Resolution** (2×/4× super-resolution) in your own environment. An image is split into overlapping tiles, each tile is upscaled by the
 engine in-process, and the tiles are merged back into the full-resolution result.
 
 Because it's a TensorRT engine, it runs **only** inside a specific NVIDIA container on an Ampere GPU
