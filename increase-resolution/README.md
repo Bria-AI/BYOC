@@ -79,8 +79,8 @@ Use `result.authorization_token` as the password for the CodeArtifact PyPI simpl
 
 | Extra | Role | GPU / torch? |
 |---|---|---|
-| `[all]` | single-machine full pipeline (`execute`) | yes (torch + timm) |
-| `[gpu]` | worker: tile inference (`TileWorker.infer`) | yes (torch + timm) |
+| `[all]` | single-machine full pipeline (`execute`) | yes (torch) |
+| `[gpu]` | worker: tile inference (`TileWorker.infer`) | yes (torch) |
 | `[cpu]` | coordinator: `split` / `merge` | no (no torch) |
 
 ```bash
@@ -89,7 +89,7 @@ export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
 BRIA_IDX="https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-res/simple/"
 
-# full pipeline (torch + timm are pulled automatically; ensure torch matches your CUDA driver — see below):
+# full pipeline (torch is pulled automatically; ensure it matches your CUDA driver — see below):
 python3 -m pip install --upgrade "increase-resolution[all]" --extra-index-url "$BRIA_IDX"
 
 # coordinator only (split/merge — no GPU/torch needed):
