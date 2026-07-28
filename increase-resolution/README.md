@@ -1,8 +1,8 @@
 # Increase Resolution: BYOC Super-Resolution Pipeline
 
 Run Bria **Increase Resolution** (2×/4× super-resolution) in your own environment. An image is split
-into overlapping tiles, each tile is upscaled by a **SwinIR** model in-process, and the tiles are
-merged back into the full-resolution result.
+into overlapping tiles, each tile is upscaled by Bria's super-resolution model in-process, and the
+tiles are merged back into the full-resolution result.
 
 The model is **native PyTorch + `torch.compile`**, so it runs on **any modern CUDA GPU** — no
 TensorRT engine, no A10-only build, no NVIDIA container. Two dedicated models are shipped: one for
@@ -17,7 +17,7 @@ TensorRT engine, no A10-only build, no NVIDIA container. Two dedicated models ar
 - **`BRIA_API_TOKEN`** — a custom-plan Bria token (used to get a short-lived CodeArtifact credential
   for the package index).
 - **`HF_TOKEN`** — with **approved access to the gated `briaai/increase-resolution`** HF repo (request
-  access on Hugging Face; Bria approves) — the SwinIR weights are hosted there and downloaded on first
+  access on Hugging Face; Bria approves) — the model weights are hosted there and downloaded on first
   `setup()`.
 - Network access to the Bria Engine, AWS CodeArtifact, and Hugging Face.
 
@@ -28,7 +28,7 @@ TensorRT engine, no A10-only build, no NVIDIA container. Two dedicated models ar
 ## Quickstart — run the example notebook
 
 No container needed. On your GPU machine, create a venv, launch Jupyter, and run the notebook — it
-fetches the CodeArtifact token → installs `increase-resolution` → downloads the SwinIR weights from
+fetches the CodeArtifact token → installs `increase-resolution` → downloads the model weights from
 HF → upscales. Two walkthroughs are included:
 
 - **`code_example.ipynb`** — simple image → image on one machine.
@@ -53,7 +53,7 @@ and the **token** printed in the log (e.g. `http://localhost:8888?token=abc`) �
 kernel.
 
 **3. Run the notebook top-to-bottom.** It fetches the CodeArtifact token, `pip install`s the package,
-downloads the SwinIR weights from `briaai/increase-resolution` with your `HF_TOKEN`, and upscales the
+downloads the model weights from `briaai/increase-resolution` with your `HF_TOKEN`, and upscales the
 sample at 2× and 4×. Outputs are saved under `outputs/`. `code_example_distributed.ipynb` runs the
 same way.
 
@@ -104,7 +104,7 @@ python3 -m pip install "torch>=2.1" --index-url https://download.pytorch.org/whl
 
 ### Weights
 
-Bria hosts the SwinIR weights on the gated HF repo **`briaai/increase-resolution`** (request access on
+Bria hosts the model weights on the gated HF repo **`briaai/increase-resolution`** (request access on
 Hugging Face; once Bria approves, set `HF_TOKEN`). They are **downloaded automatically** on the first
 `setup()` into `~/.cache/bria/increase-resolution/` — you don't fetch them by hand.
 
@@ -117,7 +117,7 @@ argument; the model class is the scale.
 from increase_resolution import IncreaseResolution2x, IncreaseResolution4x, IncreaseResolutionInput
 
 model = IncreaseResolution4x()     # or IncreaseResolution2x()
-model.setup()                      # downloads SwinIR .pth -> torch.compile -> warmup (one-time)
+model.setup()                      # downloads model weights -> torch.compile -> warmup (one-time)
 
 result = model.execute(IncreaseResolutionInput(image="https://.../photo.jpg"))
 result.image.save("upscaled.png")
@@ -129,7 +129,7 @@ model.cleanup()
 input to keep an RGBA image's alpha in the output.
 
 Configuration flags (via `IncreaseResolutionConfig`, e.g. `IncreaseResolution4x(config=...)`):
-`precision` (`"fp32"` default, matching SwinIR / `"fp16"` for extra speed), `compile_model` (default
+`precision` (`"fp32"` default / `"fp16"` for extra speed), `compile_model` (default
 `True`), `warmup_iters`, `hf_token`, `cache_folder`, tiling params, and `max_output_dimension`.
 
 ## Distributed (tile-level) usage
