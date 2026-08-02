@@ -12,8 +12,10 @@ TensorRT engine, no A10-only build, no NVIDIA container. Two dedicated models ar
 
 - **GPU:** any CUDA GPU with enough VRAM (A10/A10G, L4, L40S, A100, H100, RTX, …) and a driver that
   matches your installed PyTorch CUDA build.
-- **Python 3.10** and **PyTorch ≥ 2.1** (for `torch.compile`). Install the torch build that matches
-  your driver (e.g. CUDA 12.1 → `--index-url https://download.pytorch.org/whl/cu121`).
+- **Python 3.10**. `torch` is pinned to **2.4.1** and installs automatically with the package — its
+  default PyPI build targets CUDA 12.1, which covers virtually all modern GPUs (Ampere, Ada, Hopper).
+  If your driver doesn't support CUDA 12.1, install a different CUDA build of the same 2.4.1 version
+  explicitly first (e.g. `--index-url https://download.pytorch.org/whl/cu118`).
 - **`BRIA_API_TOKEN`** — a custom-plan Bria token (used to get a short-lived CodeArtifact credential
   for the package index).
 - **`HF_TOKEN`** — with **approved access to the gated `briaai/increase-resolution`** HF repo (request
@@ -42,8 +44,6 @@ export HF_TOKEN="your-hf-token"     # must have approved access to gated briaai/
 
 python3.10 -m venv .venv && source .venv/bin/activate
 pip install --upgrade pip jupyterlab ipykernel
-# install a torch build matching your CUDA driver first, e.g. CUDA 12.1:
-pip install "torch>=2.1" --index-url https://download.pytorch.org/whl/cu121
 jupyter lab --ip=0.0.0.0 --port=8888 --no-browser
 ```
 
@@ -89,17 +89,22 @@ export CODE_ARTIFACT_PASSWORD="<paste authorization_token here>"
 ENCODED_PASSWORD=$(python3 -c "from urllib.parse import quote; print(quote('${CODE_ARTIFACT_PASSWORD}', safe=''))")
 BRIA_IDX="https://aws:${ENCODED_PASSWORD}@bria-300465780738.d.codeartifact.us-east-1.amazonaws.com/pypi/bria-increase-res/simple/"
 
-# full pipeline (torch is pulled automatically; ensure it matches your CUDA driver — see below):
-python3 -m pip install --upgrade "increase-resolution[all]" --extra-index-url "$BRIA_IDX"
+# BRIA_IDX is --index-url (primary), pypi.org is --extra-index-url (secondary) -- resolves this
+# private package from the trusted index first, not a same-named package an attacker could publish
+# to public PyPI.
+
+# full pipeline (torch==2.4.1 is pulled automatically; targets CUDA 12.1 by default — see below):
+python3 -m pip install --upgrade "increase-resolution[all]" --index-url "$BRIA_IDX" --extra-index-url https://pypi.org/simple/
 
 # coordinator only (split/merge — no GPU/torch needed):
-python3 -m pip install --upgrade "increase-resolution[cpu]" --extra-index-url "$BRIA_IDX"
+python3 -m pip install --upgrade "increase-resolution[cpu]" --index-url "$BRIA_IDX" --extra-index-url https://pypi.org/simple/
 ```
 
-If the default torch build doesn't match your CUDA driver, install the matching one explicitly, e.g.:
+If the default torch build doesn't match your CUDA driver, install a different CUDA build of the
+same pinned version explicitly, e.g.:
 
 ```bash
-python3 -m pip install "torch>=2.1" --index-url https://download.pytorch.org/whl/cu121   # CUDA 12.1
+python3 -m pip install "torch==2.4.1" --index-url https://download.pytorch.org/whl/cu118   # CUDA 11.8
 ```
 
 ### Weights
