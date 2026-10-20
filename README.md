@@ -25,7 +25,7 @@ Each folder's README covers its own prerequisites, environment variables, and ex
 requirements — these vary per pipeline, so check the one you need before starting.
 
 No license yet? Remove Background and FIBO 2 are sold as self-hosting licenses, per model. Each
-model's page is `https://platform.bria.ai/outpost/pricing?model=<model>`, with `rmbg-2.0` or
+model's page is `https://platform.bria.ai/licensing/pricing?model=<model>`, with `rmbg-2.0` or
 `fibo-2` as the model. The other pipelines are Enterprise deliveries: talk to Bria.
 
 ## How it works, in general
