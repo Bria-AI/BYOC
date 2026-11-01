@@ -51,8 +51,9 @@ flow end to end (auth, install, run, and a transparency preview).
 and empties the CUDA cache.
 
 - **Input** (`RemoveBGInput`): an image (URL, base64, numpy array, or PIL image, via
-  `bria_external.image`), plus `return_mask` and alpha-preservation flags. The image is resolved
-  eagerly in `model_post_init` rather than lazily.
+  `bria_external.image`), plus `return_mask`, alpha-preservation flags, an optional `api_token` (see
+  **Upgrading from 0.5 or earlier**) and an optional `source_request_id`, your own id for the request, stored in the
+  attribution record. The image is resolved eagerly in `model_post_init` rather than lazily.
 - **Output** (`RemoveBGOutput`): the RGBA cutout, and the raw `mask` when `return_mask=True`.
 
 ## License and weights
@@ -68,6 +69,10 @@ usage against your plan is counted. No Hugging Face account is needed.
 **Upgrading from 0.4 or earlier:** the pipeline now needs an API token (`api_token`, `RMBG_API_TOKEN` or
 `BRIA_API_TOKEN`): `setup()` uses it for the license check and the weights download, so code that built
 `RemoveBGConfig()` with none of them set has to set one now. `HF_TOKEN` is no longer used.
+
+**Upgrading from 0.5 or earlier:** from 0.6.0, `RemoveBGInput.api_token` takes precedence over
+`RemoveBGConfig.api_token` (up to 0.5.3 the config's token won), so usage is counted against the per-request token
+when both are set.
 
 ## Troubleshooting
 
