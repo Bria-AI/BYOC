@@ -34,7 +34,8 @@ model), so it's portable across CPU and GPU environments:
 - **Device:** CPU works out of the box (`device="cpu"`); pass `device="cuda"` for faster embedding
   on an NVIDIA GPU.
 - **`BRIA_API_TOKEN`** — to request a short-lived CodeArtifact credential and to submit attribution
-  results to the Bria API.
+  results to the Bria API. Any API key of your account works if the account holds a self-hosting
+  license.
 - Network access to the Bria Engine and AWS CodeArtifact.
 
 ```bash
@@ -46,12 +47,17 @@ export BRIA_API_TOKEN="your-api-token-here"
 Call the Bria Engine once to obtain a PyPI password for the `attribution` CodeArtifact repository:
 
 ```http
-GET https://engine.prod.bria-api.com/v2/auth/access/code_artifact?repository=attribution
+GET https://engine.prod.bria-api.com/v2/outpost/access/code_artifact?repository=attribution
 api_token: <BRIA_API_TOKEN>
 ```
 
 Use `result.authorization_token` as the password for the CodeArtifact PyPI simple index with
-username `aws`.
+username `aws`. The credential is valid until `result.expiration` (about 12 hours).
+
+This route serves every account that holds a self-hosting license, for any model. An account with no
+license gets `403 not_entitled`. An account on an Enterprise contract can also use
+`/v2/auth/access/code_artifact`, with the same parameters and the same response. That route answers
+`403 custom_plan_required` for every other account.
 
 ## Install `bria_attribution`
 
