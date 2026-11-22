@@ -14,6 +14,7 @@ control** — for data residency, latency, air-gapped environments, or cost at s
 |---|---|---|
 | **Remove Background** | Segments the foreground subject and returns a transparent cutout, powered by RMBG 2.0. Licensed for self-hosting. | [`remove-bg/`](remove-bg/docs/README.md) |
 | **FIBO 2** | Generates images from a prompt and edits images from an instruction, with structured captions (VGL) you can reuse. Licensed for self-hosting. | [`fibo-2/`](fibo-2/docs/README.md) |
+| **FIBO 2 Turbo** | Edits images from an instruction in 4 steps, with the distilled FIBO 2 edit model. Image editing only. Licensed for self-hosting, separately from FIBO 2. | [`fibo-2-turbo/`](fibo-2-turbo/docs/README.md) |
 | **Packshot** | Produces a centered, marketplace-ready product image on a white, transparent, or custom-color background. | [`packshot/`](packshot/README.md) |
 | **Product Dimensions** | Renders marketplace dimension-callout images with optional title, weight, and capacity text. | [`product_dimensions/`](product_dimensions/README.md) |
 | **Erase** | Removes a masked object and inpaints the region (LaMa coarse fill + SDXL ControlNet refine). | [`erase/`](erase/README.md) |
@@ -24,9 +25,9 @@ control** — for data residency, latency, air-gapped environments, or cost at s
 Each folder's README covers its own prerequisites, environment variables, and exact GPU/CUDA
 requirements — these vary per pipeline, so check the one you need before starting.
 
-No license yet? Remove Background and FIBO 2 are sold as self-hosting licenses, per model. Each
-model's page is `https://platform.bria.ai/licensing/pricing?model=<model>`, with `rmbg-2.0` or
-`fibo-2` as the model. The other pipelines are Enterprise deliveries: talk to Bria.
+No license yet? Remove Background, FIBO 2 and FIBO 2 Turbo are sold as self-hosting licenses, per
+model. Each model's page is `https://platform.bria.ai/licensing/pricing?model=<model>`, with
+`rmbg-2.0`, `fibo-2` or `fibo-2-turbo` as the model. The other pipelines are Enterprise deliveries: talk to Bria.
 
 ## How it works, in general
 
