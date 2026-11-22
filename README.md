@@ -13,6 +13,7 @@ control** — for data residency, latency, air-gapped environments, or cost at s
 | Pipeline | What it does | Docs |
 |---|---|---|
 | **Remove Background** | Segments the foreground subject and returns a transparent cutout, powered by RMBG 2.0. Licensed for self-hosting. | [`remove-bg/`](remove-bg/docs/README.md) |
+| **RMBG 3.0** | Removes image backgrounds with RMBG 3, a FIBO 2 edit model distilled to draw the alpha matte, with soft edges for hair and fur. Licensed for self-hosting, separately from RMBG 2.0. | [`rmbg-3/`](rmbg-3/docs/README.md) |
 | **FIBO 2** | Generates images from a prompt and edits images from an instruction, with structured captions (VGL) you can reuse. Licensed for self-hosting. | [`fibo-2/`](fibo-2/docs/README.md) |
 | **FIBO 2 Turbo** | Edits images from an instruction in 4 steps, with the distilled FIBO 2 edit model. Image editing only. Licensed for self-hosting, separately from FIBO 2. | [`fibo-2-turbo/`](fibo-2-turbo/docs/README.md) |
 | **Packshot** | Produces a centered, marketplace-ready product image on a white, transparent, or custom-color background. | [`packshot/`](packshot/README.md) |
@@ -25,9 +26,10 @@ control** — for data residency, latency, air-gapped environments, or cost at s
 Each folder's README covers its own prerequisites, environment variables, and exact GPU/CUDA
 requirements — these vary per pipeline, so check the one you need before starting.
 
-No license yet? Remove Background, FIBO 2 and FIBO 2 Turbo are sold as self-hosting licenses, per
-model. Each model's page is `https://platform.bria.ai/licensing/pricing?model=<model>`, with
-`rmbg-2.0`, `fibo-2` or `fibo-2-turbo` as the model. The other pipelines are Enterprise deliveries: talk to Bria.
+No license yet? Remove Background (RMBG 2.0), RMBG 3.0, FIBO 2 and FIBO 2 Turbo are sold as
+self-hosting licenses, per model. Each model's page is
+`https://platform.bria.ai/licensing/pricing?model=<model>`, with `rmbg-2.0`, `rmbg-3.0`, `fibo-2` or
+`fibo-2-turbo` as the model. The other pipelines are Enterprise deliveries: talk to Bria.
 
 ## How it works, in general
 
